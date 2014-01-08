@@ -50,7 +50,7 @@ fi
 $ZS_MANAGE bootstrap-single-server -p $ZS_ADMIN_PASSWORD -a 'TRUE' > /app/zend-server-6-php-5.4/tmp/api_key
 
 #Remove ZS_ADMIN_PASSWORD from env.log
-sed '/ZS_ADMIN_PASSWORD/d' -i /home/vcap/logs/env.log 
+sed '/ZS_ADMIN_PASSWORD/d' -i /home/vcap/logs/env.log 
 
 # Get API key from bootstrap script output
 WEB_API_KEY=`cut -s -f 1 /app/zend-server-6-php-5.4/tmp/api_key`
@@ -113,8 +113,8 @@ fi
 
 # Fix GID/UID until ZSRV-11165 is resolved.
 VALUE=`id -u`
-sed -e "s|^\(zend.httpd_uid[ \t]*=[ \t]*\).*$|\1$value|"  -i /app/zend-server-6-php-5.4/etc/conf.d/ZendGlobalDirectives.ini
-sed -e "s|^\(zend.httpd_gid[ \t]*=[ \t]*\).*$|\1$value|"  -i /app/zend-server-6-php-5.4/etc/conf.d/ZendGlobalDirectives.ini
+sed -e "s|^\(zend.httpd_uid[ \t]*=[ \t]*\).*$|\1$VALUE|"  -i /app/zend-server-6-php-5.4/etc/conf.d/ZendGlobalDirectives.ini
+sed -e "s|^\(zend.httpd_gid[ \t]*=[ \t]*\).*$|\1$VALUE|"  -i /app/zend-server-6-php-5.4/etc/conf.d/ZendGlobalDirectives.ini
 
 $ZS_MANAGE restart-php -p -N $WEB_API_KEY -K $WEB_API_KEY_HASH
 
