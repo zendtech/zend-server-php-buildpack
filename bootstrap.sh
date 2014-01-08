@@ -23,8 +23,8 @@ cat /app/nginx/conf/alias-nginx.tpl > /app/zend-server-6-php-5.4/share/alias-ngi
 
 rm -rf /app/nginx/conf/sites-enabled
 mkdir -p /app/nginx/conf/sites-enabled
-ln -f -s /app/nginx/conf/sites-available/default /app/nginx/conf/sites-enabled
-
+#ln -f -s /app/nginx/conf/sites-available/default /app/nginx/conf/sites-enabled
+ln -f -s /app/nginx/conf/sites-available/default /app/nginx/conf/sites-enabled/default.conf
 echo "Creating/Upgrading Zend databases. This may take several minutes..."
 /app/zend-server-6-php-5.4/gui/lighttpd/sbin/php -c /app/zend-server-6-php-5.4/gui/lighttpd/etc/php-fcgi.ini /app/zend-server-6-php-5.4/share/scripts/zs_create_databases.php zsDir=/app/zend-server-6-php-5.4 toVersion=6.2.0
 
