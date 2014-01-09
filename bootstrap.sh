@@ -31,6 +31,14 @@ echo "Creating/Upgrading Zend databases. This may take several minutes..."
 #Generate 7 day trial license
 #/app/zend-server-6-php-5.4/bin/zsd /app/zend-server-6-php-5.4/etc/zsd.ini --generate-license
 
+# Setup log verbosity if needed
+if [[ -n $ZEND_LOG_VERBOSITY ]]; then
+    sed -i -e 's/zend_gui.logVerbosity = NOTICE/zend_gui.logVerbosity = DEBUG/' /app/zend-server-6-php-5.4/gui/config/zs_ui.ini
+    sed -i -e 's/zend_gui.debugModeEnabled = false/zend_gui.debugModeEnabled = true/' /app/zend-server-6-php-5.4/gui/config/zs_ui.ini
+    sed -i -e "s/zend_deployment.daemon.log_verbosity_level=2/zend_deployment.daemon.log_verbosity_level=$ZEND_LOG_VERBOSITY/" /app/zend-server-6-php-5.4/etc/zdd.ini
+    sed -i -e "s/zend_server_daemon.log_verbosity_level=2/zend_server_daemon.log_verbosity_level=$ZEND_LOG_VERBOSITY/" /app/zend-server-6-php-5.4/etc/zsd.ini
+fi
+
 #Start Zend Server
 echo "Starting Zend Server"
 # Fix GID/UID until ZSRV-11165 is resolved
@@ -46,7 +54,7 @@ if [ -z $ZS_ADMIN_PASSWORD ]; then
    #Generate a Zend Server administrator password if one was not specificed in the manifest
    # ZS_ADMIN_PASSWORD=`date +%s | sha256sum | base64 | head -c 8` 
    # echo ZS_ADMIN_PASSWORD=$ZS_ADMIN_PASSWORD
-fi 
+fi
 $ZS_MANAGE bootstrap-single-server -p $ZS_ADMIN_PASSWORD -a 'TRUE' | head -1 > /app/zend-server-6-php-5.4/tmp/api_key
 
 #Remove ZS_ADMIN_PASSWORD from env.log
@@ -55,6 +63,9 @@ sed '/ZS_ADMIN_PASSWORD/d' -i /home/vcap/logs/env.log 
 # Get API key from bootstrap script output
 WEB_API_KEY=`cut -s -f 1 /app/zend-server-6-php-5.4/tmp/api_key`
 WEB_API_KEY_HASH=`cut -s -f 2 /app/zend-server-6-php-5.4/tmp/api_key`
+
+echo "Restarting Zend Server (using WebAPI)"
+$ZS_MANAGE restart-php -p -N $WEB_API_KEY -K $WEB_API_KEY_HASH
 
 # Join the server to a cluster
 HOSTNAME=`hostname`
@@ -133,6 +144,7 @@ if [[ -n $ZEND_CF_DEBUG ]]; then
     DEBUG_PRINT_FILE /app/zend-server-6-php-5.4/tmp/api_key
     DEBUG_PRINT_FILE /app/zend_mysql.sh
     DEBUG_PRINT_FILE /app/zend_cluster.sh
-    echo WEB_API_KEY=$WEB_API_KEY
-    echo WEB_API_KEY_HASH=$WEB_API_KEY_HASH
+    DEBUG_PRINT_FILE /app/zend-server-6-php-5.4/etc/zend_database.ini
+    echo WEB_API_KEY=\'$WEB_API_KEY\'
+    echo WEB_API_KEY_HASH=\'$WEB_API_KEY_HASH\'
 fi
