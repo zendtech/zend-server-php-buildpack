@@ -23,8 +23,8 @@ cat /app/nginx/conf/alias-nginx.tpl > /app/zend-server-6-php-5.4/share/alias-ngi
 
 rm -rf /app/nginx/conf/sites-enabled
 mkdir -p /app/nginx/conf/sites-enabled
-ln -f -s /app/nginx/conf/sites-available/default /app/nginx/conf/sites-enabled
-
+#ln -f -s /app/nginx/conf/sites-available/default /app/nginx/conf/sites-enabled
+ln -f -s /app/nginx/conf/sites-available/default /app/nginx/conf/sites-enabled/default.conf
 echo "Creating/Upgrading Zend databases. This may take several minutes..."
 /app/zend-server-6-php-5.4/gui/lighttpd/sbin/php -c /app/zend-server-6-php-5.4/gui/lighttpd/etc/php-fcgi.ini /app/zend-server-6-php-5.4/share/scripts/zs_create_databases.php zsDir=/app/zend-server-6-php-5.4 toVersion=6.2.0
 
@@ -50,7 +50,7 @@ fi
 $ZS_MANAGE bootstrap-single-server -p $ZS_ADMIN_PASSWORD -a 'TRUE' > /app/zend-server-6-php-5.4/tmp/api_key
 
 #Remove ZS_ADMIN_PASSWORD from env.log
-sed '/ZS_ADMIN_PASSWORD/d' -i /home/vcap/logs/env.log 
+sed '/ZS_ADMIN_PASSWORD/d' -i /home/vcap/logs/env.log 
 
 # Get API key from bootstrap script output
 WEB_API_KEY=`cut -s -f 1 /app/zend-server-6-php-5.4/tmp/api_key`
@@ -106,15 +106,15 @@ if [[ -n $MYSQL_HOSTNAME && -n $MYSQL_PORT && -n $MYSQL_USERNAME && -n $MYSQL_PA
 
     # Configure session clustering
     echo "Restarting Zend Server (using WebAPI)"
-    #$ZS_MANAGE store-directive -d 'zend_sc.ha.use_broadcast' -v '0' -N $WEB_API_KEY -K $WEB_API_KEY_HASH
-    #$ZS_MANAGE store-directive -d 'session.save_handler' -v 'cluster' -N $WEB_API_KEY -K $WEB_API_KEY_HASH
+    $ZS_MANAGE store-directive -d 'zend_sc.ha.use_broadcast' -v '0' -N $WEB_API_KEY -K $WEB_API_KEY_HASH
+    $ZS_MANAGE store-directive -d 'session.save_handler' -v 'cluster' -N $WEB_API_KEY -K $WEB_API_KEY_HASH
 fi
 
 
 # Fix GID/UID until ZSRV-11165 is resolved.
 VALUE=`id -u`
-sed -e "s|^\(zend.httpd_uid[ \t]*=[ \t]*\).*$|\1$value|"  -i /app/zend-server-6-php-5.4/etc/conf.d/ZendGlobalDirectives.ini
-sed -e "s|^\(zend.httpd_gid[ \t]*=[ \t]*\).*$|\1$value|"  -i /app/zend-server-6-php-5.4/etc/conf.d/ZendGlobalDirectives.ini
+sed -e "s|^\(zend.httpd_uid[ \t]*=[ \t]*\).*$|\1$VALUE|"  -i /app/zend-server-6-php-5.4/etc/conf.d/ZendGlobalDirectives.ini
+sed -e "s|^\(zend.httpd_gid[ \t]*=[ \t]*\).*$|\1$VALUE|"  -i /app/zend-server-6-php-5.4/etc/conf.d/ZendGlobalDirectives.ini
 
 $ZS_MANAGE restart-php -p -N $WEB_API_KEY -K $WEB_API_KEY_HASH
 
