@@ -18,6 +18,11 @@ ZS_MANAGE=/app/zend-server-6-php-5.4/bin/zs-manage
 sed "s/vcap/${ZEND_UID}/" ${PHP_INI_SCAN_DIR}/ZendGlobalDirectives.ini.erb > ${PHP_INI_SCAN_DIR}/ZendGlobalDirectives.ini
 sed "s/VCAP_PORT/${PORT}/" /app/nginx/conf/sites-available/default.erb > /app/nginx/conf/sites-available/default
 
+# Change document root if needed
+if [[ -n $ZEND_DOCUMENT_ROOT ]]; then
+    sed -i -e "s|root[ \t]*/app/www|root /app/www/$ZEND_DOCUMENT_ROOT|" /app/nginx/conf/sites-available/default
+fi
+
 #replace zend-server-6-php-5.4/share/alias-nginx.tpl with one compatible with ZF2
 cat /app/nginx/conf/alias-nginx.tpl > /app/zend-server-6-php-5.4/share/alias-nginx.tpl
 
@@ -111,8 +116,6 @@ if [[ -n $MYSQL_HOSTNAME && -n $MYSQL_PORT && -n $MYSQL_USERNAME && -n $MYSQL_PA
     APP_IP=`/sbin/ifconfig w-${HOSTNAME}-1| grep 'inet addr:' | awk {'print \$2'}| cut -d ':' -f 2`
 
     # Actually join cluster
-    echo "Delaying before joining cluster"
-    sleep 100
     echo "Joining cluster"
     $ZS_MANAGE server-add-to-cluster -n $APP_UNIQUE_NAME -i $APP_IP -o $MYSQL_HOSTNAME:$MYSQL_PORT -u $MYSQL_USERNAME -p $MYSQL_PASSWORD -d $MYSQL_DBNAME -N $WEB_API_KEY -K $WEB_API_KEY_HASH -s | sed -e 's/ //g' > /app/zend_cluster.sh
     eval `cat /app/zend_cluster.sh`
