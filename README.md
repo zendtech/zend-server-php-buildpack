@@ -1,57 +1,70 @@
 # Overview
 
-This buildpack provides Zend Server 6.2 on Cloud Foundry. In the future, the Web server and Zend Server binaries will probably be moved into the stack. This will save space for each container, and make pushes and restarting almost instantaneous. To ensure portability and easy installation, they are currently included in the buildpack.
+Welcome to the Zend Server PHP buildpack! This buildpack allows you to deploy your PHP apps on Cloud Foundry using Zend Server 6.2. 
+Zend Server's integration with Cloud Foundry allows you to quickly get your PHP applications up and running on a highly available PHP production environment which includes, amongst other features, a highly reliable PHP stack, application monitoring, troubleshooting, and more.
 
 # Buildpack Components
 
-* Zend Server 6.2 Enterprise edition.
+* Zend Server 6.2 Enterprise edition
 * Zend Server 6.2 configuration files
 * PHP 5.4
 * Nginx web server
  
 
 # Usage
-1. Create a folder on your workstation, and "cd" into it.
-2. Create an empty file called "zend_server_php_app". If you do not do this, you will have to manually specify which buildpack to use for the app. 
-3. Make sure your app contains an "index.php" file.
-4. Issue the `cf push --buildpack=https://github.com/davidl-zend/zend-server-mysql-buildpack-dev` command. Allocate at least 512M of RAM for your app. 
-5. When prompted, save your manifest.
-6. Optional - bind a MySQL service (cleardb/mysql/MariaDB/user-provided) to the app - this will cause Zend Server to operate in cluster mode (experimental). Operating in cluster mode enables: scaling, persistence of settings changed using the Zend Server UI and persistence of apps deployed using Zend Server's deployment mechanism. 
-If you bind more than one database service to an app, specify which service Zend Server should use by setting the 'ZS_ DB' env variable to the correct service: `cf set-env <app_name> ZS_DB <db-service-name>`. Otherwise, Zend Server will use the first database available.
-7. When prompted, save the manifest.
-8. Issue the comand below to change the Zend Server UI password (this can be performed in the future in case you forget your password):
-`cf set-env <app_name> ZS_ADMIN_PASSWORD <password>`
-9. The previous steps should generate a YAML file named "manifest.yml" (see example below). Optional - add and push the generated manifest in future applications to facilitate smoother future pushes. 
+1. Download and install Cloud Foundry's 'cf' CLI.
+2. Create a new folder on your workstation, and access it
+3. In the new folder, create an empty file called `zend_server_php_app`. 
+4. If you have additional application files and resources you would like to deploy, copy them to the new folder.
+5. Create a new 'index.php' file, and paste the following code (if you already have an 'index.php' file, skip to the next step):
+```
+<?php
+echo "Hello world!;
+?>
+```
+6. Enter the following command:
+`cf push --buildpack=https://github.com/davidl-zend/zend-server-mysql-buildpack-dev` 
+7. Name your application.
+8. Select the number of instances you would like to use for your application.
+9. Allocate memory for you application (at least 512M).
+10. Enter a sub-domain for your application.
+11. Enter a domain for your application.
+12. Create a MySQL database service for your application (if you already have a database service, skip to step 13). To create a custom service (recommended for production, large clusters):
+a. Enter 'y'
+b. As the service type, select 'user-provided'.
+c. Name the service.
+d. Enter a comma separated list of the service parameters.
+The required parameters are 'hostname', 'port', 'username' , 'password', 'name' (where 'name' is the database Zend Server will use for its internal functions).
+e. Enter the values for each parameter in order. The service is created and bound to the application.
+To create a clearDB service:
+a. Enter 'y.
+b. As the service type, select 'cleardb'.
+c. Name the service.
+d. Select the clearDB service plan you wish to use (Do NOT select the Spark plan).The service is created and bound to the application.
+13. Bind an existing database service to your application, or any additional services you may wish to use (If you already added a database service in the previous step, skip to step 14): a. Enter 'y'. b. Enter the service you wish to bind to the application. The service is bound to the application.
+14. To save the configuration, enter 'y'. Your configurations area saved in a 'manifest.yml' file, and your application is deployed using the Zend Server buildpack. This may take a few minutes.
+15. Once successfully initialized and deployed, a success message with the URL at which your application is available at is displayed.
+16. To access the application, enter the supplied URL in your Web browser.
+17. To access Zend Server, enter add 'ZendServer' to the supplied URL. For example:`http://<application URL>/ZendServer` The Zend Server Login page is displayed.
+18. To access the Zend Server UI, enter the following credentials: Username - admin, Password - changeme.
+19. To change the Zend Server UI password, or in case you misplace your password, enter the following command:
+`cf set-env <application name> ZS_ADMIN_PASSWORD <new password>`
 
- ```
- ---
- env:
-    ZS_ACCEPT_EULA: 'TRUE'
-    ZS_ADMIN_PASSWORD: '<password_for_Zend_Server_GUI_console>'
- applications:
- - name: <app_name>
-    instances: 1
-    memory: <at least 512M >
-    host: <app_name>
-    domain: <your_cloud_domain>
-    path: .
- ```
+# Binding an External MySQL Database Service
+You can bind an MySQL external database to the Zend Server app as a "user-provided" service. Doing so will enable persistence, session clustering, and more (if you already bound a database service when creating the application, this process is unnecessary). 
+Note:
+If you bind more than one database service to the application, specify which service Zend Server should use by setting the 'ZS_ DB' env variable to the correct service. Otherwise, Zend Server will use the first database available: 
+`cf set-env <app_name> ZS_DB <db-service-name>`
 
-10. Wait for the app to start.
-11. Once the app starts, you can access the Zend Server UI at http://url-to-your-app/ZendServer (e.g. http://dave2.vcap.me/ZendServer) using username 'admin' and the password you defined in step 7. If you forgot to perform step 7, then the password is 'changeme'. 
-12. If you chose to save the manifest in the previous steps, then you can issue the `cf push` command to udpate your application code in the future.
-
-# Using an External Database Service
-It is possible to bind an external database to the Zend Server app as a "user-provided" service. Doing so will enable persistence, session clustering, and more. 
-To bind an external database:
-
-1. Run `cf create-service`.
-2. As a service type select "user-provided".
-3. Enter a friendly name for the service.
-4. Enter service paramaters. The required parameters are `hostname, port, password, name`, where 'name' is the database Zend Server will use for its internal functions.
-5. Enter the paramaters of your external database provider in order.
-6. Bind the service to your app `cf bind-service [service-name] [app-name]`.
-7. The service will be auto-detected upon push. Zend Server will create the schema and enable clustering features.
+1. Open your CLI.
+2. Run `cf create-service`.
+2. As a service type, select "user-provided".
+3. Name the service.
+4. Enter a comma separated list of the MySQL service parameters.
+The required parameters are 'hostname', 'port', 'username' , 'password', 'name' (where 'name' is the database Zend Server will use for its internal functions).
+5. Enter the values for each parameter in order.
+6. Run the following command to bind the MySQL service to your application: `cf bind-service [service-name] [app-name]`.
+7. The service will be auto-detected upon push. Zend Server will create the MySQL database schema and enable clustering features.
 
 
 # Known Issues
@@ -62,7 +75,6 @@ To bind an external database:
  * Zend Server will not operate in cluster mode.
 * Application generated data is not persistent (this is a limitation of Cloud Foundry) unless saved to a third party storage provider (like S3). 
 * MySQL is not used automatically - If you require MySQL then you will have to setup your own server and configure your app to use it.
-* Each container has their own full copy of Zend Server at the moment so droplet size is about 161MB for an empty app (this should not be an issue in public cloud foundry platforms).
 * If the application does not contain an 'index.php' file you will most likely encounter a "403 permission denied error".
 
 # Local Installation
