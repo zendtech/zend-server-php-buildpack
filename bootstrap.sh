@@ -136,6 +136,9 @@ function DEBUG_PRINT_FILE() {
     echo "--- End $BASENAME ---"
 }
 
+# Remove guidePage #ZCLOUD-179
+sed -i '/package/a zend_gui.guidePage = 0' /app/zend-server-6-php-5.4/gui/config/zs_ui.ini
+
 # Debug output
 if [[ -n $ZEND_CF_DEBUG ]]; then
     echo UID=$VALUE
