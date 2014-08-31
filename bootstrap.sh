@@ -97,12 +97,15 @@ if [[ -n $MYSQL_HOSTNAME && -n $MYSQL_PORT && -n $MYSQL_USERNAME && -n $MYSQL_PA
 fi
 
 # ZCLOUD-131 - automatically import exported Zend Server config files
+echo "pre loop, on $ZEND_CONFIG_FILE"
 if [[ -z $ZEND_CONFIG_FILE ]]; then
   for ZEND_CONFIG_FILE in /app/www/.zend_config/zs_config*.zip
   do
+    echo "first loop, on $ZEND_CONFIG_FILE"
     $ZS_MANAGE config-import $ZEND_CONFIG_FILE -N $WEB_API_KEY -K $WEB_API_KEY_HASH
   done
 elif [ -f $ZEND_CONFIG_FILE ]; then 
+    echo "second loop, on $ZEND_CONFIG_FILE"
   $ZS_MANAGE config-import $ZEND_CONFIG_FILE -N $WEB_API_KEY -K $WEB_API_KEY_HASH
 fi
       
