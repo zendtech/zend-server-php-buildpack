@@ -61,7 +61,7 @@ if [ -z $ZS_ADMIN_PASSWORD ]; then
 fi
 if [[ -z $ZEND_LICENSE_ORDER || -z $ZEND_LICENSE_KEY ]]; then
     ZEND_LICENSE_ORDER=cloudfoundry
-    ZEND_LICENSE_KEY=AG12IG51401H51B08FD9C3A65E23D2CE
+    ZEND_LICENSE_KEY=I6UI7J41C01O51B08FD9A71565DFAEE0
     export ZS_EDITION=FREE
 fi
 
@@ -97,15 +97,12 @@ if [[ -n $MYSQL_HOSTNAME && -n $MYSQL_PORT && -n $MYSQL_USERNAME && -n $MYSQL_PA
 fi
 
 # ZCLOUD-131 - automatically import exported Zend Server config files
-echo "pre loop, on $ZEND_CONFIG_FILE"
 if [[ -z $ZEND_CONFIG_FILE ]]; then
   for ZEND_CONFIG_FILE in /app/www/.zend_config/zs_config*.zip
   do
-    echo "first loop, on $ZEND_CONFIG_FILE"
     $ZS_MANAGE config-import $ZEND_CONFIG_FILE -N $WEB_API_KEY -K $WEB_API_KEY_HASH
   done
 elif [ -f $ZEND_CONFIG_FILE ]; then 
-    echo "second loop, on $ZEND_CONFIG_FILE"
   $ZS_MANAGE config-import $ZEND_CONFIG_FILE -N $WEB_API_KEY -K $WEB_API_KEY_HASH
 fi
       
