@@ -148,6 +148,9 @@ function DEBUG_PRINT_FILE() {
     echo "--- End $BASENAME ---"
 }
 
+# Remove guidePage #ZCLOUD-179
+sed -i '/package/a zend_gui.guidePage = 0' /app/zend-server-6-php-5.4/gui/config/zs_ui.ini
+
 # Deploy ZPK
 for i in `find . -name "*.zpk"`; do $ZS_MANAGE app-deploy -p $i -b http://localhost/`basename $i .zpk` -d -a `basename $i .zpk` -N $WEB_API_KEY -K $WEB_API_KEY_HASH; done
 
